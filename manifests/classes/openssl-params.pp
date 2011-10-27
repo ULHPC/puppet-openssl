@@ -49,6 +49,15 @@ class openssl::params {
     
     # The script provided to generate SSL certificates
     $generate_ssl_cert = '/usr/local/sbin/generate-ssl-cert.sh'
+
+    $default_ssl_cacert = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/ => '/etc/ssl/certs/ca-certificates.crt',
+        default => '/etc/pki/tls/certs/ca-bundle.crt'        
+    }
+
+    $cert_filename_suffix = "_cert.pem"
+    $csr_filename_suffix = "_csr.pem"
+    $key_filename_suffix = "_key.pem"
     
     # $configfile = $::operatingsystem ? {
     #     default => '/path/to/openssl.conf',
