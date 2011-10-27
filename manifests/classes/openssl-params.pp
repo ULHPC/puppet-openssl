@@ -49,7 +49,7 @@ class openssl::params {
     
     # The script provided to generate SSL certificates
     $generate_ssl_cert = '/usr/local/sbin/generate-ssl-cert.sh'
-
+    
     # $configfile = $::operatingsystem ? {
     #     default => '/path/to/openssl.conf',
     # }

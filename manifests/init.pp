@@ -6,6 +6,6 @@
 # ------------------------------------------------------------------------------
 
 import "classes/*.pp"
-#import "definitions/*.pp"
+import "definitions/*.pp"
 
 
