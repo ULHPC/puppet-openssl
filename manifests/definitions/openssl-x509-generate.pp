@@ -129,9 +129,9 @@ define openssl::x509::generate (
     # $name is provided by define invocation
     $certname = $name
     $configfile = "${basedir}/${certname}.cnf"
-    $certfile   = "${basedir}/${certname}_cert.pem"
-    $csrfile    = "${basedir}/${certname}_csr.pem"
-    $keyfile    = "${basedir}/${certname}_key.pem"
+    $certfile   = "${basedir}/${certname}${openssl::params::cert_filename_suffix}"
+    $csrfile    = "${basedir}/${certname}${openssl::params::csr_filename_suffix}"
+    $keyfile    = "${basedir}/${certname}${openssl::params::key_filename_suffix}"
 
     $real_commonname = $commonname ? {
         ''      => "${fqdn}",
@@ -190,7 +190,7 @@ define openssl::x509::generate (
                 onlyif  => "test -f ${keyfile}",
                 require => Exec["$creationlabel"]
             }
-            exec { "chown ${user}:${group} ${keyfile} ${outfile}":
+            exec { "chown ${owner}:${group} ${keyfile} ${outfile}":
                 path   => "/usr/bin:/usr/sbin/:/bin:/sbin",
                 onlyif => [
                            "test -f ${keyfile}",
