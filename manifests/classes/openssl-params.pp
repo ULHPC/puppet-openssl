@@ -35,6 +35,67 @@ class openssl::params {
         default => "${openssl_ensure}"
     }
 
+    # Certificate countryName
+    $country = $openssl_country ? {
+        ''      => 'LU',
+        default => "${openssl_country}"
+    }
+    # Certificate stateOrProvinceName
+    $state = $openssl_state ? {
+        ''      => 'Luxembourg',
+        default => "${openssl_state}"
+    }
+    # Certificate localityName
+    $locality = $openssl_locality ? {
+        ''      => 'Luxembourg',
+        default => "${openssl_locality}"
+    }
+    # Certificate organizationName
+    $organization = $openssl_organization ? {
+        ''      => 'University of Luxembourg (UL)',
+        default => "${openssl_organization}"
+    }
+    # Certificate organizationalUnitName 
+    $organizational_unit = $openssl_organizational_unit ? {
+        ''      => 'Computer Science and Communication (CSC)',
+        default => "${openssl_organisational_unit}"
+    }
+    # Certificate validity (in days)
+    $days = $openssl_days ? {
+        ''      => 365,
+        default => $openssl_days
+    }
+    # Certificate validity (in days) of the CA certficate (5y by default)
+    $ca_days = $openssl_ca_days ? {
+        ''      => 9125,
+        default => $openssl_ca_days
+    }
+    # Email
+    $email = $openssl_email ? {
+        ''      => 'Sebastien.Varrette@uni.lu',
+        default => "${openssl_email}"
+    }
+    # Root CA common name
+    $root_ca_commonname = $openssl_root_ca_commonname ? {
+        ''      => "${organizational_unit} Root Authority",
+        default => "${openssl_root_ca_commonname}"
+    }
+    # CA common name
+    $ca_commonname = $openssl_ca_commonname ? {
+        ''      => "${organizational_unit} Signing Authority",
+        default => "${openssl_ca_commonname}"
+    }
+    # Use a root CA i.e. create not only a signing CA but also a root CA.
+    $use_root_ca = $openssl_use_root_ca ? {
+        ''      => false,
+        default => $openssl_use_root_ca
+    }
+    # Revocation URL
+    $ca_revocation_url = $openssl_ca_revocation_url ? {
+        ''      => "https://puppet.${domain}/ca-crl.pem",
+        default => "${openssl_ca_revocation_url}"
+    }
+    
     #### MODULE INTERNAL VARIABLES  #########
     # (Modify to adapt to unsupported OSes)
     #######################################
@@ -75,20 +136,24 @@ class openssl::params {
     #     default => 'root',
     # }
 
-    # $configdir = $::operatingsystem ? {
-    #     default => "/etc/openssl",
-    # }
-    # $configdir_mode = $::operatingsystem ? {
-    #     default => '0755',
-    # }
+    $cert_basedir = $::operatingsystem ? {
+        default => "/etc/certificates",
+    }
+    $cert_basedir_mode = $::operatingsystem ? {
+        default => '0755',
+    }
 
-    # $configdir_owner = $::operatingsystem ? {
-    #     default => 'root',
-    # }
+    $cert_basedir_owner = $::operatingsystem ? {
+        default => 'root',
+    }
 
-    # $configdir_group = $::operatingsystem ? {
-    #     default => 'root',
-    # }
+    $cert_basedir_group = $::operatingsystem ? {
+        default => 'root',
+    }
+    # Directory hosting the CA
+    $cadir = $::operatingsystem ? {
+        default => "${cert_basedir}/CA"
+    }
 
     # $pkgmanager = $::operatingsystem ? {
     #     /(?i-mx:ubuntu|debian)/	       => [ '/usr/bin/apt-get' ],
