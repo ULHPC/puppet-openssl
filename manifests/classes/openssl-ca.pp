@@ -66,7 +66,7 @@ class openssl::ca (
 inherits openssl::params
 {
 
-    info ("Configuring openssl::ca (with ensure = ${ensure})")
+    info ("Configuring openssl::ca (with ensure = ${ensure}) in ${basedir} (use Root CA = ${use_root_ca})")
 
     if ! ($ensure in [ 'present', 'absent' ]) {
         fail("openssl::ca 'ensure' parameter must be set to either 'absent' or 'present'")
@@ -115,28 +115,41 @@ class openssl::ca::common {
     }
 
 
-    # Prepare the basic directories and variables
-    $templatedir = "${openssl::ca::basedir}/templates"
+    # Prepare the basic directories and variables (similar to the Puppet
+    # built-in CA)  
+    $templatedir   = "${openssl::ca::basedir}/.template"
+    $cadir         = "${openssl::ca::basedir}/ca"
+    $certdir       = "${openssl::ca::basedir}/certs"
+    # $publickeydir  = "${openssl::ca::basedir}/public_keys"
+    # $privatekeydir = "${openssl::ca::basedir}/private_keys"
+    
     if $openssl::ca::use_root_ca {
-        $rootcadir     = "${openssl::ca::basedir}/01_RootCA"
-        $cadir         = "${openssl::ca::basedir}/10_SigningCA"
-        $hostcertdir   = "${openssl::ca::basedir}/50_HostCerts"
-        $cacert_target = "${rootcadir}/ca-cert.pem"
+        $rootcadir  = "${openssl::ca::basedir}/rootCA"
+        $ca_basedir = "${rootcadir}"
     }
-    else {
-        $cadir         = "${openssl::ca::basedir}/CA"
-        $hostcertdir   = "${openssl::ca::basedir}/HostCerts"
-        $cacert_target = "${cadir}/ca-cert.pem"
+    else
+    {
+        $ca_basedir = "${cadir}"
     }
-    $cacertfile = "${openssl::ca::basedir}/CA${openssl::params::cert_filename_suffix}"
+    
+    $cacertfile = "${openssl::ca::basedir}/ca${openssl::params::cert_filename_suffix}"
+    #$cakeyfile  = "${openssl::ca::basedir}/ca${openssl::params::key_filename_suffix}"
 
-    file { [ "${cadir}", "${hostcertdir}", "${templatedir}" ]:
+    file { [ "${cadir}", "${certdir}", "${templatedir}" ]:
         ensure  => "directory",
         owner   => "${openssl::ca::owner}",
         group   => "${openssl::ca::group}",
         mode    => "${openssl::ca::mode}",
         require => File["${openssl::ca::basedir}"]
     }
+
+    # file { [ "${privatekeydir}" ]:
+    #     ensure  => "directory",
+    #     owner   => "${openssl::ca::owner}",
+    #     group   => "${openssl::ca::group}",
+    #     mode    => "0750",
+    #     require => File["${openssl::ca::basedir}"]
+    # }
 
     # prepare the template files
     file { "${templatedir}/Makefile":
@@ -179,8 +192,8 @@ class openssl::ca::common {
     openssl::ca::init { "${cadir}":
         commonname  => "${openssl::ca::ca_commonname}",
         email       => "${openssl::ca::email}",
-        owner       => 'root',
-        group       => 'root',
+        owner       => "${openssl::ca::owner}",
+        group       => "${openssl::ca::group}",
         mode        => '0600',
         templatedir => "${templatedir}"
     }
@@ -192,10 +205,10 @@ class openssl::ca::common {
             key         => "${cadir}/private/ca-key.pem",
             config      => "${cadir}/openssl.cnf",
             basedir     => "${cadir}",
-            owner       => 'root',
-            group       => 'root',
+            owner       => "${openssl::ca::owner}",
+            group       => "${openssl::ca::group}",
             self_signed => false,
-            require => Openssl::Ca::Init["${cadir}"]
+            require     => Openssl::Ca::Init["${cadir}"]
         }
         # ... And sign it by the Root CA
         openssl::ca::sign { 'signing-ca':
@@ -227,8 +240,14 @@ class openssl::ca::common {
     # Add the link to the (root) CA certificate
     file { "${cacertfile}":
         ensure  => 'link',
-        target  => "${cacert_target}",
+        target  => "${ca_basedir}/ca-cert.pem",
         require => Openssl::Ca::Init["${cadir}"]
+    }
+
+    file { "${certdir}/ca.pem":
+        ensure  => 'link',
+        target  => "${cacertfile}",
+        require => File["${certdir}"]
     }
 
     # Create the certficiate for the current host:
@@ -237,18 +256,18 @@ class openssl::ca::common {
         ensure      => "${openssl::ca::ensure}",
         owner       => "${openssl::ca::owner}",
         group       => "${openssl::ca::group}",
-        basedir     => "${hostcertdir}",
+        basedir     => "${certdir}",
         self_signed => false
     }
 
     # ... And sign it with the Signing CA
     openssl::ca::sign { "$fqdn":
-        basedir => "${hostcertdir}",
+        basedir => "${certdir}",
+        owner   => "${openssl::ca::owner}",
+        group   => "${openssl::ca::group}",
         cadir   => "${cadir}",
         require => $cert_requires
     }
-
-
 }
 
 # ------------------------------------------------------------------------------
