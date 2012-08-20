@@ -116,9 +116,11 @@ class openssl::params {
         default => '/etc/pki/tls/certs/ca-bundle.crt'        
     }
 
-    $cert_filename_suffix = "_cert.pem"
-    $csr_filename_suffix = "_csr.pem"
-    $key_filename_suffix = "_key.pem"
+    $cert_filename_suffix   = "_cert.pem"
+    $csr_filename_suffix    = "_csr.pem"
+    $crl_filename_suffix    = "_crl.pem"
+    $key_filename_suffix    = "_key.pem"
+    $pubkey_filename_suffix = "_pub.pem"
     
     # $configfile = $::operatingsystem ? {
     #     default => '/path/to/openssl.conf',
