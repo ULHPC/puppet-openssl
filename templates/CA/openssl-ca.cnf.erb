@@ -133,7 +133,7 @@ countryName         = <%= scope.lookupvar('openssl::ca::country') %>
 stateOrProvinceName = <%= scope.lookupvar('openssl::ca::state') %>
 localityName        = <%= scope.lookupvar('openssl::ca::locality') %>
 0.organizationName  = <%= scope.lookupvar('openssl::ca::organization') %>
-emailAddress        = <%= email %>
+emailAddress        = <%= scope.lookupvar('openssl::ca::email') %>
 
 [ usr_cert ]
 
@@ -148,7 +148,7 @@ basicConstraints=CA:FALSE
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid,issuer:always
 
-nsCaRevocationUrl    = <%= ca_revocation_url %>
+nsCaRevocationUrl    = <%= scope.lookupvar('openssl::ca::ca_revocation_url') %>
 #nsBaseUrl
 #nsRevocationUrl
 #nsRenewalUrl
