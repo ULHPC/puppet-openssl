@@ -28,6 +28,8 @@ define openssl::ca::sign (
     $basedir,
     $cadir,
     $csr      = '',
+    $owner    = $openssl::params::cert_basedir_owner,
+    $group    = $openssl::params::cert_basedir_group,
     $create_signing_authority = false
 )
 {
@@ -51,6 +53,8 @@ define openssl::ca::sign (
         command => "cp ${csrfile} ${cadir}/${certname}${openssl::params::csr_filename_suffix}",
         path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
         onlyif  => "test -f ${csrfile}",
+        user    => "${owner}",
+        group   => "${group}",
         unless  => "test -f ${basedir}/${certname}${openssl::params::cert_filename_suffix}",
         require => File["${cadir}"]
     }
@@ -63,24 +67,22 @@ define openssl::ca::sign (
     
     exec { "Sign ${certname} Certificate Signing Request (CSR)":
         path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
+        user    => "${owner}",
+        group   => "${group}",
         cwd     => "${cadir}",
-        command => "openssl ca -batch -config openssl.cnf ${create_signing_authority_opts} -in ${certname}${openssl::params::csr_filename_suffix} -out ${certname}${openssl::params::cert_filename_suffix}",
+        command => "openssl ca -batch -config openssl.cnf ${create_signing_authority_opts} -in ${certname}${openssl::params::csr_filename_suffix} -out signed/${certname}${openssl::params::cert_filename_suffix}",
         unless  => "test -f ${basedir}/${certname}${openssl::params::cert_filename_suffix}",
         require => [
                     Package['openssl'],
                     Openssl::Ca::Init["${cadir}"],
                     File["${cadir}/openssl.cnf"],
+                    File["${cadir}/signed"],
                     Exec["copy ${csrfile} into ${cadir}"]
                     ]
     }
 
+    
     # Clean the environment 
-    exec { "mv ${cadir}/${certname}${openssl::params::cert_filename_suffix} ${basedir}/":
-        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
-        cwd     => "${cadir}",
-        onlyif  => "test -f ${cadir}/${certname}${openssl::params::cert_filename_suffix}",
-        require => Exec["Sign ${certname} Certificate Signing Request (CSR)"]
-    }
     exec { "rm ${cadir}/${certname}${openssl::params::csr_filename_suffix}":
         path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
         onlyif  => "test -f ${cadir}/${certname}${openssl::params::csr_filename_suffix}",
@@ -92,6 +94,41 @@ define openssl::ca::sign (
         require => Exec["Sign ${certname} Certificate Signing Request (CSR)"]
     }
      
+    # Prepare the layout in basedir
+    exec { "cp ${cadir}/signed/${certname}${openssl::params::cert_filename_suffix} ${basedir}/":
+        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
+        user    => "${owner}",
+        group   => "${group}",
+        cwd     => "${cadir}",
+        onlyif  => "test -f ${cadir}/signed/${certname}${openssl::params::cert_filename_suffix}",
+        require => Exec["Sign ${certname} Certificate Signing Request (CSR)"]
+    }
+    file { "${cadir}/signed/${certname}.pem":
+        ensure  => 'link',
+        owner   => "${owner}",
+        group   => "${group}",
+        target  => "${cadir}/signed/${certname}${openssl::params::cert_filename_suffix}",
+        require => Exec["Sign ${certname} Certificate Signing Request (CSR)"]     
+    }
+
+    # file { "${basedir}/${certname}.pem":
+    #     ensure  => 'link',
+    #     target  => "${certname}${openssl::params::cert_filename_suffix}",
+    #     require => Exec["Sign ${certname} Certificate Signing Request (CSR)"]     
+    # }
+   
+    exec { "openssl x509 -in ${certname}${openssl::params::cert_filename_suffix} -pubkey -noout > ${certname}${openssl::params::pubkey_filename_suffix}":
+        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
+        cwd     => "${basedir}",
+        user    => "${owner}",
+        group   => "${group}",
+        onlyif  => "test -f ${basedir}/${certname}${openssl::params::cert_filename_suffix}",
+        unless  => "test -f ${basedir}/${certname}${openssl::params::pubkey_filename_suffix}", 
+        require => Exec["cp ${cadir}/signed/${certname}${openssl::params::cert_filename_suffix} ${basedir}/"]
+    }
+
+    
+
     
 
 }

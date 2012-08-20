@@ -49,7 +49,7 @@
 # == Sample usage:
 #
 #      include 'openssl::ca'
-#  
+#
 #    openssl::ca::init { "/etc/certificates/CA":
 #        commonname  => "My Personnal Root Authority",
 #        email       => "my.mail@domain.org",
@@ -79,10 +79,10 @@ define openssl::ca::init (
     include openssl::params
     include openssl::ca
 
-    # $name is provided at definition invocation and should be set to the basedir 
+    # $name is provided at definition invocation and should be set to the basedir
     $rootdir = $basedir ? {
         ''      => "${name}",
-        default => "${rootdir}"
+        default => "${basedir}"
     }
 
 
@@ -122,6 +122,8 @@ define openssl::ca::init (
     exec { "Initialize the CA in ${rootdir}":
         path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
         command => "make init",
+        user    => "${owner}",
+        group   => "${group}",
         cwd     => "${rootdir}",
         require => [
                     File["${rootdir}/Makefile"],
@@ -130,4 +132,14 @@ define openssl::ca::init (
         unless  => "test -d ${rootdir}/newcerts",
     }
 
+    # # Duplicate the layout of Puppet built-in CA
+    file { "${rootdir}/signed":
+        ensure => 'directory',
+        owner  => "${owner}",
+        group  => "${group}",
+        mode   => "${openssl::ca::mode}",
+        require => File["${rootdir}"]
+    }
+
+    
 }
