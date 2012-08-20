@@ -4,7 +4,7 @@
 # License::   GPLv3
 #
 # ------------------------------------------------------------------------------
-# = Class: openssl::ca
+# = Defines: openssl::ca
 #
 # Configure and manage a Certificate Authority (CA), typically to initiate a
 # chain of trust.
@@ -34,7 +34,7 @@
 # You can then specialize the various aspects of the configuration,
 # for instance:
 #
-#      class { 'openssl::ca':
+#      openssl::ca { '/etc/certificates':
 #          ensure => 'present'
 #      }
 #
@@ -45,9 +45,9 @@
 #
 # [Remember: No empty lines between comments and class definition]
 #
-class openssl::ca (
+define openssl::ca (
+    $basedir             = '',
     $ensure              = $openssl::params::ensure,
-    $basedir             = $openssl::params::cert_basedir,
     $commonname          = $openssl::params::ca_commonname,
     $country             = $openssl::params::country,
     $state               = $openssl::params::state,
@@ -63,35 +63,17 @@ class openssl::ca (
     $use_root_ca         = $openssl::params::use_root_ca,
     $root_ca_commonname  = $openssl::params::root_ca_commonname
 )
-inherits openssl::params
 {
 
-    info ("Configuring openssl::ca (with ensure = ${ensure}) in ${basedir} (use Root CA = ${use_root_ca})")
+    include openssl::params
 
-    if ! ($ensure in [ 'present', 'absent' ]) {
-        fail("openssl::ca 'ensure' parameter must be set to either 'absent' or 'present'")
+    # $name is provided at definition invocation and should be set to the basedir
+    $rootdir = $basedir ? {
+        ''      => "${name}",
+        default => "${basedir}"
     }
-
-    case $::operatingsystem {
-        debian, ubuntu:         { include openssl::ca::debian }
-        redhat, fedora, centos: { include openssl::ca::redhat }
-        default: {
-            fail("Module $module_name is not supported on $operatingsystem")
-        }
-    }
-}
-
-# ------------------------------------------------------------------------------
-# = Class: openssl::ca::common
-#
-# Base class to be inherited by the other openssl::ca classes
-#
-# Note: respect the Naming standard provided
-# here[http://projects.puppetlabs.com/projects/puppet/wiki/Module_Standards]
-class openssl::ca::common {
-
-    # Load the variables used in this module. Check the infiniband-params.pp file
-    require openssl::params
+    
+    info ("Configuring openssl::ca (with ensure = ${ensure}) in ${rootdir} (use Root CA = ${use_root_ca})")
 
     if !defined( Package['make'] ) {
         package { 'make':
@@ -100,31 +82,31 @@ class openssl::ca::common {
     }
 
     # The root directory of the CA
-    if !defined( File["${openssl::ca::basedir}"] ){
-        exec { "mkdir -p ${openssl::ca::basedir}":
+    if !defined( File["${rootdir}"] ){
+        exec { "mkdir -p ${rootdir}":
             path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
-            unless  => "test -d ${openssl::ca::basedir}",
+            unless  => "test -d ${rootdir}",
         }
-        file { "${openssl::ca::basedir}":
+        file { "${rootdir}":
             ensure  => "directory",
-            owner   => "${openssl::ca::owner}",
-            group   => "${openssl::ca::group}",
-            mode    => "${openssl::ca::mode}",
-            require => Exec["mkdir -p ${openssl::ca::basedir}"]
+            owner   => "${owner}",
+            group   => "${group}",
+            mode    => "${mode}",
+            require => Exec["mkdir -p ${rootdir}"]
         }
     }
 
 
     # Prepare the basic directories and variables (similar to the Puppet
     # built-in CA)  
-    $templatedir   = "${openssl::ca::basedir}/.template"
-    $cadir         = "${openssl::ca::basedir}/ca"
-    $certdir       = "${openssl::ca::basedir}/certs"
-    # $publickeydir  = "${openssl::ca::basedir}/public_keys"
-    # $privatekeydir = "${openssl::ca::basedir}/private_keys"
+    $templatedir   = "${rootdir}/.template"
+    $cadir         = "${rootdir}/ca"
+    $certdir       = "${rootdir}/certs"
+    # $publickeydir  = "${rootdir}/public_keys"
+    # $privatekeydir = "${rootdir}/private_keys"
     
-    if $openssl::ca::use_root_ca {
-        $rootcadir  = "${openssl::ca::basedir}/rootCA"
+    if $use_root_ca {
+        $rootcadir  = "${rootdir}/rootCA"
         $ca_basedir = "${rootcadir}"
     }
     else
@@ -132,55 +114,55 @@ class openssl::ca::common {
         $ca_basedir = "${cadir}"
     }
     
-    $cacertfile = "${openssl::ca::basedir}/ca${openssl::params::cert_filename_suffix}"
-    #$cakeyfile  = "${openssl::ca::basedir}/ca${openssl::params::key_filename_suffix}"
+    $cacertfile = "${rootdir}/ca${openssl::params::cert_filename_suffix}"
+    #$cakeyfile  = "${rootdir}/ca${openssl::params::key_filename_suffix}"
 
     file { [ "${cadir}", "${certdir}", "${templatedir}" ]:
         ensure  => "directory",
-        owner   => "${openssl::ca::owner}",
-        group   => "${openssl::ca::group}",
-        mode    => "${openssl::ca::mode}",
-        require => File["${openssl::ca::basedir}"]
+        owner   => "${owner}",
+        group   => "${group}",
+        mode    => "${mode}",
+        require => File["${rootdir}"]
     }
 
     # file { [ "${privatekeydir}" ]:
     #     ensure  => "directory",
-    #     owner   => "${openssl::ca::owner}",
-    #     group   => "${openssl::ca::group}",
+    #     owner   => "${owner}",
+    #     group   => "${group}",
     #     mode    => "0750",
-    #     require => File["${openssl::ca::basedir}"]
+    #     require => File["${rootdir}"]
     # }
 
     # prepare the template files
     file { "${templatedir}/Makefile":
-        ensure  => "${openssl::ca::ensure}",
-        owner   => "${openssl::ca::owner}",
-        group   => "${openssl::ca::group}",
+        ensure  => "${ensure}",
+        owner   => "${owner}",
+        group   => "${group}",
         mode    => '0644',
         content => template("openssl/CA/Makefile.erb"),
         require => File["${templatedir}"],
     }
     file { "${templatedir}/openssl.cnf":
-        ensure  => "${openssl::ca::ensure}",
-        owner   => "${openssl::ca::owner}",
-        group   => "${openssl::ca::group}",
+        ensure  => "${ensure}",
+        owner   => "${owner}",
+        group   => "${group}",
         mode    => '0644',
         source  => "puppet:///modules/openssl/ca/openssl.cnf",
         require => File["${templatedir}"],
     }
 
     # prepare the root CA
-    if $openssl::ca::use_root_ca {
+    if $use_root_ca {
         file { "${rootcadir}":
             ensure  => 'directory',
             owner   => 'root',
             group   => 'root',
             mode    => '0700',
-            require => File["${openssl::ca::basedir}"]
+            require => File["${rootdir}"]
         }
-        openssl::ca::init { "${rootcadir}":
-            commonname  => "${openssl::ca::root_ca_commonname}",
-            email       => "${openssl::ca::email}",
+        init { "${rootcadir}":
+            commonname  => "${root_ca_commonname}",
+            email       => "${email}",
             owner       => 'root',
             group       => 'root',
             mode        => '0600',
@@ -189,24 +171,24 @@ class openssl::ca::common {
     }
 
     # Prepare the CA directory
-    openssl::ca::init { "${cadir}":
-        commonname  => "${openssl::ca::ca_commonname}",
-        email       => "${openssl::ca::email}",
-        owner       => "${openssl::ca::owner}",
-        group       => "${openssl::ca::group}",
+    init { "${cadir}":
+        commonname  => "${ca_commonname}",
+        email       => "${email}",
+        owner       => "${owner}",
+        group       => "${group}",
         mode        => '0600',
         templatedir => "${templatedir}"
     }
 
     # Sign the CA certificate with the Root CA
-    if $openssl::ca::use_root_ca {
+    if $use_root_ca {
         # Generate the new CSR for the Signing CA
         openssl::x509::generate { 'signing-ca':
             key         => "${cadir}/private/ca-key.pem",
             config      => "${cadir}/openssl.cnf",
             basedir     => "${cadir}",
-            owner       => "${openssl::ca::owner}",
-            group       => "${openssl::ca::group}",
+            owner       => "${owner}",
+            group       => "${group}",
             self_signed => false,
             require     => Openssl::Ca::Init["${cadir}"]
         }
