@@ -120,8 +120,6 @@ class openssl::ca::common {
     $templatedir   = "${openssl::ca::basedir}/.template"
     $cadir         = "${openssl::ca::basedir}/ca"
     $certdir       = "${openssl::ca::basedir}/certs"
-    # $publickeydir  = "${openssl::ca::basedir}/public_keys"
-    # $privatekeydir = "${openssl::ca::basedir}/private_keys"
     
     if $openssl::ca::use_root_ca {
         $rootcadir  = "${openssl::ca::basedir}/rootCA"
@@ -133,7 +131,7 @@ class openssl::ca::common {
     }
     
     $cacertfile = "${openssl::ca::basedir}/ca${openssl::params::cert_filename_suffix}"
-    #$cakeyfile  = "${openssl::ca::basedir}/ca${openssl::params::key_filename_suffix}"
+    $cacrlfile  = "${openssl::ca::basedir}/ca${openssl::params::crl_filename_suffix}"
 
     file { [ "${cadir}", "${certdir}", "${templatedir}" ]:
         ensure  => "directory",
@@ -142,14 +140,6 @@ class openssl::ca::common {
         mode    => "${openssl::ca::mode}",
         require => File["${openssl::ca::basedir}"]
     }
-
-    # file { [ "${privatekeydir}" ]:
-    #     ensure  => "directory",
-    #     owner   => "${openssl::ca::owner}",
-    #     group   => "${openssl::ca::group}",
-    #     mode    => "0750",
-    #     require => File["${openssl::ca::basedir}"]
-    # }
 
     # prepare the template files
     file { "${templatedir}/Makefile":
@@ -229,11 +219,11 @@ class openssl::ca::common {
             target => "signing-ca${openssl::params::cert_filename_suffix}",
             require => Exec["rm -f ${cadir}/ca-cert.pem"]
         }
-        $cert_requires = [ Openssl::X509::Generate["$fqdn"], Openssl::Ca::Sign[ 'signing-ca' ] ]
+        $cert_requires = [ Openssl::Ca::Sign[ 'signing-ca' ], Openssl::X509::Generate["$fqdn"] ]
     }
     else
     {
-       $cert_requires = [ Openssl::X509::Generate["$fqdn"], Openssl::Ca::Init["${cadir}"] ]
+       $cert_requires = [ Openssl::Ca::Init["${cadir}"], Openssl::X509::Generate["$fqdn"] ]
     }
 
 
@@ -241,6 +231,11 @@ class openssl::ca::common {
     file { "${cacertfile}":
         ensure  => 'link',
         target  => "${ca_basedir}/ca-cert.pem",
+        require => Openssl::Ca::Init["${cadir}"]
+    }
+    file { "${cacrlfile}":
+        ensure  => 'link',
+        target  => "${ca_basedir}/ca-crl.pem",
         require => Openssl::Ca::Init["${cadir}"]
     }
 

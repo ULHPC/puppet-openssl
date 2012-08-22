@@ -129,17 +129,40 @@ define openssl::ca::init (
                     File["${rootdir}/Makefile"],
                     File["${rootdir}/openssl.cnf"]
                     ],
-        unless  => "test -d ${rootdir}/newcerts",
+        creates => "${rootdir}/ca-cert.pem",
+        #unless  => "test -d ${rootdir}/newcerts",
+    }
+    exec { "Initialize the CRL for the CA in ${rootdir}":
+        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
+        command => "make gencrl",
+        user    => "${owner}",
+        group   => "${group}",
+        cwd     => "${rootdir}",
+        require => Exec["Initialize the CA in ${rootdir}"],
+        #unless  => "test -f ${rootdir}/ca-crl.pem",
+        creates => "${rootdir}/ca-crl.pem"
     }
 
-    # # Duplicate the layout of Puppet built-in CA
-    file { "${rootdir}/signed":
-        ensure => 'directory',
-        owner  => "${owner}",
-        group  => "${group}",
-        mode   => "${openssl::ca::mode}",
-        require => File["${rootdir}"]
+    exec { "openssl x509 -in ca-cert.pem -pubkey -noout > ca${openssl::params::pubkey_filename_suffix}":
+        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
+        cwd     => "${rootdir}",
+        user    => "${owner}",
+        group   => "${group}",
+        onlyif  => "test -f ${rootdir}/ca-cert.pem",
+        #unless  => "test -f ${rootdir}/ca${openssl::params::pubkey_filename_suffix}",
+        creates => "${rootdir}/ca${openssl::params::pubkey_filename_suffix}",
+        require => Exec["Initialize the CA in ${rootdir}"]
     }
 
-    
+
+    # # # Duplicate the layout of Puppet built-in CA
+    # file { "${rootdir}/signed":
+    #     ensure => 'directory',
+    #     owner  => "${owner}",
+    #     group  => "${group}",
+    #     mode   => "${openssl::ca::mode}",
+    #     require => File["${rootdir}"]
+    # }
+
+
 }
