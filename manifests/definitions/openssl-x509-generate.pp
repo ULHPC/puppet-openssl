@@ -223,39 +223,45 @@ define openssl::x509::generate (
 
             exec { "$creationlabel":
                 command => "${cmd_generate_cert}",
-                creates => "$outfile",
-                unless  => "test -f ${certfile}",
+                creates => "$keyfile",
+                unless  => "test -f ${keyfile}",
+                user    => "${owner}",
+                group   => "${group}",
                 path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
                 require => [
                             File["$configfile"],
                             Package['openssl']
                             ]
             }
-
-            # Change the mode and the owner of the key file
-            exec { "chmod 0600 $keyfile":
-                path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
-                onlyif  => "test -f ${keyfile}",
-                require => Exec["$creationlabel"]
+            if !defined( File["${keyfile}"]) {
+                file { "${keyfile}" :
+                    ensure => "${ensure}",
+                    owner   => "${owner}",
+                    group   => "${group}",
+                    mode    => '0600',
+                    require => Exec["${creationlabel}"]
+                }
             }
-            exec { "chown ${owner}:${group} ${keyfile} ${outfile}":
-                path   => "/usr/bin:/usr/sbin/:/bin:/sbin",
-                onlyif => [
-                           "test -f ${keyfile}",
-                           "test -f ${outfile}"
-                           ],
-                require => Exec["$creationlabel"]
+            if ($self_signed and (! defined( File["${certfile}"]))) {
+                file { "${certfile}" :
+                    ensure => "${ensure}",
+                    owner   => "${owner}",
+                    group   => "${group}",
+                    require => Exec["${creationlabel}"]
+                }
             }
-
-
 
         }
         absent: {
             # Here openssl::x509::generate::ensure = 'absent'
-            file { ["$configfile", "$keyfile", "$certfile" ]:
+            file { ["$configfile", "$keyfile" ]:
                 ensure => "${ensure}"
             }
-
+            if $self_signed {
+                file { "$certfile":
+                    ensure => "${ensure}"
+                }
+            }
         }
         default: { err ( "Unknown ensure value: '${ensure}'" ) }
     }
