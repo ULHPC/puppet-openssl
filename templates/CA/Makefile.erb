@@ -39,6 +39,8 @@
 #
 # make revoke cert=foo.cert
 #
+# To test the connection for the current hostname, try 
+
 # This will revoke the certificate and call gencrl; the revocation list
 # will then need to be copied somehow to the various systems that use
 # your CA cert.
@@ -65,6 +67,12 @@ revoke:
 
 gencrl:
 	@openssl ca -config openssl.cnf -gencrl -out ca-crl.pem
+
+s_server:
+	@openssl s_server -verify 10 -cert ../certs/$(shell hostname -f)_cert.pem -key ../certs/$(shell hostname -f)_key.pem -CAfile ./ca-cert.pem
+
+s_client:
+	@openssl s_client -connect $(shell hostname -f):4433  -verify 10 -cert ../certs/$(shell hostname -f)_cert.pem -key ../certs/$(shell hostname -f)_key.pem -CAfile ./ca-cert.pem
 
 clean:
 	-rm ${requests}
