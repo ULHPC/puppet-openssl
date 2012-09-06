@@ -95,10 +95,10 @@
 #      openssl::x509::generate { 'foo.bar':
 #          ensure => 'present',
 #          country      => "LU",
-#          organization => "University of Luxembourg",
-#          organizational_unit => 'CSC',
+#          organization => "University of Luxembourg (UL)",
+#          organizational_unit => 'Computer Science and Communication (CSC)',
 #          commonname   => $fqdn,
-#          base_dir     => "/var/www/ssl",
+#          basedir      => "/var/www/ssl",
 #          owner        => "www-data",
 #          group        => 'www-data'
 #      }
