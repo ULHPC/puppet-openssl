@@ -46,7 +46,7 @@ default_crl_days= 30
 default_days    = 365
 # do not use MD5: http://www.win.tue.nl/hashclash/rogue-ca/
 # pick a stronger hash, if possible
-default_md      = sha1
+default_md      = sha256
 # MSIE may need following set to yes?
 preserve        = no
 
@@ -82,7 +82,7 @@ default_bits            = 2048
 default_keyfile         = ./private/ca-key.pem
 # do not use MD5: http://www.win.tue.nl/hashclash/rogue-ca/
 # pick a stronger hash, if possible
-default_md              = sha1
+default_md              = sha256
 
 prompt                  = no
 distinguished_name      = root_ca_distinguished_name
@@ -93,7 +93,7 @@ x509_extensions = v3_ca
 # input_password = secret
 # output_password = secret
 
-# This sets a mask for permitted string types. There are several options. 
+# This sets a mask for permitted string types. There are several options.
 # default: PrintableString, T61String, BMPString.
 # pkix   : PrintableString, BMPString.
 # utf8only: only UTF8Strings.

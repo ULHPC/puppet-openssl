@@ -1,6 +1,6 @@
 ################################################################################
-# <%= certname %>.cnf - OpenSSL configuration file for the generation 
-# of the PKCS#10 X.509 Certificate Signing Request (CSR) 
+# <%= certname %>.cnf - OpenSSL configuration file for the generation
+# of the PKCS#10 X.509 Certificate Signing Request (CSR)
 # See http://www.openssl.org/docs/apps/req.html
 #
 # ---------- Details of <%= certname %> certificate ----------
@@ -22,12 +22,12 @@ RANDFILE                = $ENV::HOME/.rnd
 ####################################################################
 [ req ]
 default_bits            = 2048
-default_md              = sha1         # digest algorithm to use ('md5' 'sha1' 'mdc2')
+default_md              = sha256         # digest algorithm to use ('md5' 'sha1' 'mdc2')
 default_days            = <%= days %>
 default_keyfile         = privkey.pem
 distinguished_name      = req_distinguished_name
 # disables prompting of certificate fields and just takes values from the config
-# file directly. 
+# file directly.
 prompt                  = no
 <% if altnames and not altnames.empty? -%>
 req_extensions          = req_ext

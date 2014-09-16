@@ -1,20 +1,20 @@
 ################################################################################
 # <%= templatedir %>/openssl.cnf -- Configuration file for OpenSSL CA.
-# Largely inspired from the old sial.org `openssl.cnf` 
-#             ___                   ____ ____  _        ____    _    
-#            / _ \ _ __   ___ _ __ / ___/ ___|| |      / ___|  / \   
-#           | | | | '_ \ / _ \ '_ \\___ \___ \| |     | |     / _ \  
-#           | |_| | |_) |  __/ | | |___) |__) | |___  | |___ / ___ \ 
+# Largely inspired from the old sial.org `openssl.cnf`
+#             ___                   ____ ____  _        ____    _
+#            / _ \ _ __   ___ _ __ / ___/ ___|| |      / ___|  / \
+#           | | | | '_ \ / _ \ '_ \\___ \___ \| |     | |     / _ \
+#           | |_| | |_) |  __/ | | |___) |__) | |___  | |___ / ___ \
 #            \___/| .__/ \___|_| |_|____/____/|_____|  \____/_/   \_\
-#                 |_|                                                
-#                                           __ _       
-#                           ___ ___  _ __  / _(_) __ _ 
+#                 |_|
+#                                           __ _
+#                           ___ ___  _ __  / _(_) __ _
 #                          / __/ _ \| '_ \| |_| |/ _` |
 #                         | (_| (_) | | | |  _| | (_| |
 #                          \___\___/|_| |_|_| |_|\__, |
-#                                                |___/ 
+#                                                |___/
 #
-# More information: 
+# More information:
 # * http://novosial.org/openssl/ca/
 # * http://projects.puppetlabs.com/projects/puppet/wiki/Multiple_Certificate_Authorities
 ################################################################################
@@ -68,7 +68,7 @@ default_crl_days= 30
 default_days    = <%= scope.lookupvar('openssl::ca::days') %>
 # do not use MD5: http://www.win.tue.nl/hashclash/rogue-ca/
 # pick a stronger hash, if possible
-default_md      = sha1
+default_md      = sha256
 # MSIE may need following set to yes?
 preserve        = no
 
@@ -104,7 +104,7 @@ default_bits            = 2048
 default_keyfile         = ./private/ca-key.pem
 # do not use MD5: http://www.win.tue.nl/hashclash/rogue-ca/
 # pick a stronger hash, if possible
-default_md              = sha1
+default_md              = sha256
 
 prompt                  = no
 distinguished_name      = root_ca_distinguished_name
@@ -115,7 +115,7 @@ x509_extensions = v3_ca
 # input_password = secret
 # output_password = secret
 
-# This sets a mask for permitted string types. There are several options. 
+# This sets a mask for permitted string types. There are several options.
 # default: PrintableString, T61String, BMPString.
 # pkix   : PrintableString, BMPString.
 # utf8only: only UTF8Strings.
