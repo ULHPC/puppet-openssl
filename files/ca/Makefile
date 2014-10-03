@@ -44,14 +44,15 @@ clean:
 	-rm ${requests}
 
 # creates required supporting files, CA key and certificate
+# NOTE use "-newkey rsa" if running OpenSSL less than 0.9.8a
 init:
-	@test ! -f serial
-	@mkdir crl newcerts private
-	@chmod go-rwx private
-	@echo '01' > serial
-	@touch index
-	# NOTE use "-newkey rsa" if running OpenSSL less than 0.9.8a
-	@openssl req -nodes -config openssl.cnf -days 1825 -x509 -newkey rsa:2048 -out ca-cert.pem -outform PEM
+	@if [ ! -f serial ]; then     \
+		@mkdir crl newcerts private \
+		@chmod go-rwx private       \
+		@echo '01' > serial         \
+		@touch index                \
+		@openssl req -nodes -config openssl.cnf -days 1825 -x509 -newkey rsa:2048 -out ca-cert.pem -outform PEM \
+  fi
 
 help:
 	@echo make sign
