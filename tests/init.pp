@@ -17,4 +17,8 @@
 #
 node default {
     include openssl
+
+    class { 'openssl::ca':
+        ensure => 'present'
+    }
 }
