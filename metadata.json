@@ -1,0 +1,51 @@
+{
+  "name": "ULHPC/openssl",
+  "version": "1.1.0",
+  "author": "S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team",
+  "mail": "Hyacinthe.Cartiaux@uni.lu",
+  "summary": "Configure OpenSSL and manage X509 certificates (generation etc.)",
+  "description": "Configure OpenSSL and manage X509 certificates (generation etc.)",
+  "license": "GPL-3.0",
+  "source": "https://github.com/ULHPC/puppet-openssl",
+  "docs_project": "ulhpc-puppet-openssl",
+  "project_page": "https://github.com/ULHPC/puppet-openssl",
+  "issues_url": "https://github.com/ULHPC/puppet-openssl/issues",
+  "forge_url": "https://forge.puppetlabs.com/ULHPC/openssl",
+  "dependencies": [
+    {
+      "name": "puppetlabs-stdlib",
+      "version_requirement": ">=4.2.2 <5.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    }
+  ],
+  "tags": [
+    "ssl",
+    "openssl",
+    "certificates",
+    "keys"
+  ],
+  "classes": [
+    "openssl",
+    "openssl::ca",
+    "openssl::ca::common",
+    "openssl::ca::common::debian",
+    "openssl::ca::common::redhat",
+    "openssl::common",
+    "openssl::common::debian",
+    "openssl::common::redhat",
+    "openssl::params"
+  ],
+  "definitions": [
+    "openssl::ca::init",
+    "openssl::ca::sign",
+    "openssl::x509::generate"
+  ]
+}
