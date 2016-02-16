@@ -141,17 +141,17 @@ define openssl::x509::generate (
     $certname = $name
     $configfile = $config ? {
         ''      => "${basedir}/${certname}.cnf",
-        default => "${config}"
+        default => $config
     }
     $certfile   = "${basedir}/${certname}${openssl::params::cert_filename_suffix}"
     $csrfile    = "${basedir}/${certname}${openssl::params::csr_filename_suffix}"
     $keyfile = $key ? {
         ''      => "${basedir}/${certname}${openssl::params::key_filename_suffix}",
-        default => "${key}"
+        default => $key
     }
 
     $real_commonname = $commonname ? {
-        ''      => "${fqdn}",
+        ''      => $fqdn,
         default => $commonname
     }
 
@@ -170,25 +170,25 @@ define openssl::x509::generate (
         }
     }
 
-    if !defined( File["${basedir}"]) {
+    if !defined( File[$basedir]) {
         exec { "mkdir -p ${basedir}":
-            path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
-            unless  => "test -d ${basedir}",
+            path   => '/usr/bin:/usr/sbin/:/bin:/sbin',
+            unless => "test -d ${basedir}",
         }
-        file { "${basedir}":
-            ensure  => "directory",
-            owner   => "${owner}",
-            group   => "${group}",
-            mode    => "${mode}",
+        file { $basedir:
+            ensure  => 'directory',
+            owner   => $owner,
+            group   => $group,
+            mode    => $mode,
             require => Exec["mkdir -p ${basedir}"]
         }
     }
-    if !defined( File["${configfile}"]) {
-        file { "$configfile":
-            ensure  => "${ensure}",
-            owner   => "${owner}",
-            group   => "${group}",
-            content => template("openssl/cert-req.cnf.erb"),
+    if !defined( File[$configfile]) {
+        file { $configfile:
+            ensure  => $ensure,
+            owner   => $owner,
+            group   => $group,
+            content => template('openssl/cert-req.cnf.erb'),
         }
     }
 
@@ -200,8 +200,8 @@ define openssl::x509::generate (
                 default => '-x509'
             }
             $outfile = $self_signed ? {
-                false   => "${csrfile}",
-                default => "${certfile}"
+                false   => $csrfile,
+                default => $certfile
             }
             $key_opts = $key ? {
                 ''      => "-keyout ${keyfile}",
@@ -214,52 +214,52 @@ define openssl::x509::generate (
             }
 
             if $config == '' {
-                File["$configfile"] {
-                    notify => Exec["$creationlabel"]
+                File[$configfile] {
+                    notify => Exec[$creationlabel]
                 }
             }
 
             $cmd_generate_cert = "openssl req -new ${self_signed_opt} -nodes -config ${configfile} -out ${outfile} ${key_opts}"
 
-            exec { "$creationlabel":
-                command => "${cmd_generate_cert}",
-                creates => "$keyfile",
+            exec { $creationlabel:
+                command => $cmd_generate_cert,
+                creates => $keyfile,
                 unless  => "test -f ${keyfile}",
-                user    => "${owner}",
-                group   => "${group}",
-                path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
+                user    => $owner,
+                group   => $group,
+                path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
                 require => [
-                            File["$configfile"],
+                            File[$configfile],
                             Package['openssl']
                             ]
             }
-            if !defined( File["${keyfile}"]) {
-                file { "${keyfile}" :
-                    ensure => "${ensure}",
-                    owner   => "${owner}",
-                    group   => "${group}",
+            if !defined( File[$keyfile]) {
+                file { $keyfile :
+                    ensure  => $ensure,
+                    owner   => $owner,
+                    group   => $group,
                     mode    => '0600',
-                    require => Exec["${creationlabel}"]
+                    require => Exec[$creationlabel]
                 }
             }
-            if ($self_signed and (! defined( File["${certfile}"]))) {
-                file { "${certfile}" :
-                    ensure => "${ensure}",
-                    owner   => "${owner}",
-                    group   => "${group}",
-                    require => Exec["${creationlabel}"]
+            if ($self_signed and (! defined( File[$certfile]))) {
+                file { $certfile :
+                    ensure  => $ensure,
+                    owner   => $owner,
+                    group   => $group,
+                    require => Exec[$creationlabel]
                 }
             }
 
         }
         absent: {
             # Here openssl::x509::generate::ensure = 'absent'
-            file { ["$configfile", "$keyfile" ]:
-                ensure => "${ensure}"
+            file { [$configfile, $keyfile ]:
+                ensure => $ensure
             }
             if $self_signed {
-                file { "$certfile":
-                    ensure => "${ensure}"
+                file { $certfile:
+                    ensure => $ensure
                 }
             }
         }

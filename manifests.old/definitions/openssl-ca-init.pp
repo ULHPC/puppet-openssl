@@ -81,8 +81,8 @@ define openssl::ca::init (
 
     # $name is provided at definition invocation and should be set to the basedir
     $rootdir = $basedir ? {
-        ''      => "${name}",
-        default => "${basedir}"
+        ''      => $name,
+        default => $basedir
     }
 
 
@@ -100,31 +100,31 @@ define openssl::ca::init (
     else
     {
         file { "${rootdir}/Makefile":
-            ensure  => "${openssl::ca::ensure}",
-            owner   => "${owner}",
-            group   => "${group}",
-            mode    => "${mode}",
-            content => template("openssl/CA/Makefile.erb"),
-            require => File["${rootdir}"],
+            ensure  => $openssl::ca::ensure,
+            owner   => $owner,
+            group   => $group,
+            mode    => $mode,
+            content => template('openssl/CA/Makefile.erb'),
+            require => File[$rootdir],
         }
     }
 
     file { "${rootdir}/openssl.cnf":
-        ensure  => "${openssl::ca::ensure}",
-        owner   => "${owner}",
-        group   => "${group}",
-        mode    => "${mode}",
-        content => template("openssl/CA/openssl-ca.cnf.erb"),
-        require => File["${rootdir}"]
+        ensure  => $openssl::ca::ensure,
+        owner   => $owner,
+        group   => $group,
+        mode    => $mode,
+        content => template('openssl/CA/openssl-ca.cnf.erb'),
+        require => File[$rootdir]
     }
 
     # initialize the CA by running make init
     exec { "Initialize the CA in ${rootdir}":
-        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
-        command => "make init",
-        user    => "${owner}",
-        group   => "${group}",
-        cwd     => "${rootdir}",
+        path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
+        command => 'make init',
+        user    => $owner,
+        group   => $group,
+        cwd     => $rootdir,
         require => [
                     File["${rootdir}/Makefile"],
                     File["${rootdir}/openssl.cnf"]
@@ -133,21 +133,21 @@ define openssl::ca::init (
         #unless  => "test -d ${rootdir}/newcerts",
     }
     exec { "Initialize the CRL for the CA in ${rootdir}":
-        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
-        command => "make gencrl",
-        user    => "${owner}",
-        group   => "${group}",
-        cwd     => "${rootdir}",
+        path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
+        command => 'make gencrl',
+        user    => $owner,
+        group   => $group,
+        cwd     => $rootdir,
         require => Exec["Initialize the CA in ${rootdir}"],
         #unless  => "test -f ${rootdir}/ca-crl.pem",
         creates => "${rootdir}/ca-crl.pem"
     }
 
     exec { "openssl x509 -in ca-cert.pem -pubkey -noout > ca${openssl::params::pubkey_filename_suffix}":
-        path    => "/usr/bin:/usr/sbin/:/bin:/sbin",
-        cwd     => "${rootdir}",
-        user    => "${owner}",
-        group   => "${group}",
+        path    => '/usr/bin:/usr/sbin/:/bin:/sbin',
+        cwd     => $rootdir,
+        user    => $owner,
+        group   => $group,
         onlyif  => "test -f ${rootdir}/ca-cert.pem",
         #unless  => "test -f ${rootdir}/ca${openssl::params::pubkey_filename_suffix}",
         creates => "${rootdir}/ca${openssl::params::pubkey_filename_suffix}",

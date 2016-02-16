@@ -51,7 +51,7 @@ class openssl( $ensure = $openssl::params::ensure ) inherits openssl::params
         debian, ubuntu:         { include openssl::debian }
         redhat, fedora, centos: { include openssl::redhat }
         default: {
-            fail("Module $module_name is not supported on $operatingsystem")
+            fail("Module ${module_name} is not supported on ${operatingsystem}")
         }
     }
 }
@@ -68,23 +68,23 @@ class openssl::common {
     require openssl::params
 
     package { 'openssl':
-        name    => "${openssl::params::packagename}",
-        ensure  => "${openssl::ensure}",
+        name   => $openssl::params::packagename,
+        ensure => $openssl::ensure,
     }
 
     if $openssl::params::utils_packages != [] {
         package { $openssl::params::utils_packages:
-            ensure  => "${openssl::ensure}",
+            ensure  => $openssl::ensure,
         }
     }
 
     # The script used to generate X.509 certificates
-    file { "${openssl::params::generate_ssl_cert}":
-        source  => "puppet:///modules/openssl/generate-ssl-cert.sh",
+    file { $openssl::params::generate_ssl_cert:
+        source  => 'puppet:///modules/openssl/generate-ssl-cert.sh',
         mode    => '0755',
         owner   => 'root',
         group   => 'root',
-        ensure  => "${openssl::ensure}",
+        ensure  => $openssl::ensure,
         require => Package['openssl']
     }
 
