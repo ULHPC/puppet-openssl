@@ -1,5 +1,5 @@
 ################################################################################
-# <%= rootcadir %>/openssl-rootca.cnf -- Configuration file for OpenSSL Root CA.
+# <%= @rootcadir %>/openssl-rootca.cnf -- Configuration file for OpenSSL Root CA.
 # Largely inspired from the old sial.org `openssl.cnf`
 #          ___                   ____ ____  _       ____             _
 #         / _ \ _ __   ___ _ __ / ___/ ___|| |     |  _ \ ___   ___ | |_
@@ -148,7 +148,7 @@ basicConstraints=CA:FALSE
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid,issuer:always
 
-nsCaRevocationUrl               = <%= ca_revocation_url %>
+nsCaRevocationUrl               = <%= @ca_revocation_url %>
 #nsBaseUrl
 #nsRevocationUrl
 #nsRenewalUrl

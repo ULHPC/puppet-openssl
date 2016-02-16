@@ -1,5 +1,5 @@
 ################################################################################
-# <%= templatedir %>/openssl.cnf -- Configuration file for OpenSSL CA.
+# <%= @templatedir %>/openssl.cnf -- Configuration file for OpenSSL CA.
 # Largely inspired from the old sial.org `openssl.cnf`
 #             ___                   ____ ____  _        ____    _
 #            / _ \ _ __   ___ _ __ / ___/ ___|| |      / ___|  / \
@@ -128,7 +128,7 @@ string_mask = nombstr
 # req_extensions = v3_req
 
 [ root_ca_distinguished_name ]
-commonName          = <%= commonname %>
+commonName          = <%= @commonname %>
 countryName         = <%= scope.lookupvar('openssl::ca::country') %>
 stateOrProvinceName = <%= scope.lookupvar('openssl::ca::state') %>
 localityName        = <%= scope.lookupvar('openssl::ca::locality') %>
