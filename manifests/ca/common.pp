@@ -165,7 +165,7 @@ class openssl::ca::common {
     # Create the certficiate for the current host:
     openssl::x509::generate { $::fqdn:
         ensure      => $openssl::ca::ensure,
-        email       => 'hpc-sysadmins@uni.lu',
+        email       => $openssl::ca::email,
         owner       => $openssl::ca::owner,
         group       => $openssl::ca::group,
         basedir     => $certdir,
