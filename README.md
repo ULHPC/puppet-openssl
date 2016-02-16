@@ -21,8 +21,20 @@ Configure OpenSSL and manage X509 certificates (generation etc.).
 This module implements the following elements: 
 
 * __Puppet classes__:
+    - `openssl` 
+    - `openssl::ca` 
+    - `openssl::ca::common` 
+    - `openssl::ca::common::debian` 
+    - `openssl::ca::common::redhat` 
+    - `openssl::common` 
+    - `openssl::common::debian` 
+    - `openssl::common::redhat` 
+    - `openssl::params` 
 
 * __Puppet definitions__: 
+    - `openssl::ca::init` 
+    - `openssl::ca::sign` 
+    - `openssl::x509::generate` 
 
 All these components are configured through a set of variables you will find in
 [`manifests/params.pp`](manifests/params.pp). 
@@ -51,6 +63,60 @@ Use it as follows:
 
 See also [`tests/init.pp`](tests/init.pp)
 
+### Class `openssl::ca`
+
+See [`tests/ca.pp`](tests/ca.pp)
+
+### Definition `openssl::ca::init`
+
+The definition `openssl::ca::init` provides ...
+This definition accepts the following parameters:
+
+* `$ensure`: default to 'present', can be 'absent'
+* `$content`: specify the contents of the directive as a string
+* `$source`: copy a file as the content of the directive.
+
+Example:
+
+        openssl::ca::init { 'toto':
+		      ensure => 'present',
+        }
+
+See also [`tests/ca/init.pp`](tests/ca/init.pp)
+
+### Definition `openssl::ca::sign`
+
+The definition `openssl::ca::sign` provides ...
+This definition accepts the following parameters:
+
+* `$ensure`: default to 'present', can be 'absent'
+* `$content`: specify the contents of the directive as a string
+* `$source`: copy a file as the content of the directive.
+
+Example:
+
+        openssl::ca::sign { 'toto':
+		      ensure => 'present',
+        }
+
+See also [`tests/ca/sign.pp`](tests/ca/sign.pp)
+
+### Definition `openssl::x509::generate`
+
+The definition `openssl::x509::generate` provides ...
+This definition accepts the following parameters:
+
+* `$ensure`: default to 'present', can be 'absent'
+* `$content`: specify the contents of the directive as a string
+* `$source`: copy a file as the content of the directive.
+
+Example:
+
+        openssl::x509::generate { 'toto':
+		      ensure => 'present',
+        }
+
+See also [`tests/x509/generate.pp`](tests/x509/generate.pp)
 
 
 ## Librarian-Puppet / R10K Setup
