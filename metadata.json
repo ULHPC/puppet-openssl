@@ -26,5 +26,26 @@
       ]
     }
   ],
-  "tags": ["ssl", "openssl", "certificates", "keys"]
+  "tags": [
+    "ssl",
+    "openssl",
+    "certificates",
+    "keys"
+  ],
+  "classes": [
+    "openssl",
+    "openssl::ca",
+    "openssl::ca::common",
+    "openssl::ca::common::debian",
+    "openssl::ca::common::redhat",
+    "openssl::common",
+    "openssl::common::debian",
+    "openssl::common::redhat",
+    "openssl::params"
+  ],
+  "definitions": [
+    "openssl::ca::init",
+    "openssl::ca::sign",
+    "openssl::x509::generate"
+  ]
 }
